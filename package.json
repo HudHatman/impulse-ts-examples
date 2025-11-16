@@ -11,9 +11,9 @@
   },
   "license": "Copyright Michał Baniowski",
   "dependencies": {
-    "impulse-dataset-ts": "^0.0.9",
-    "impulse-math-ts": "^0.0.6",
-    "impulse-ts": "^0.0.8"
+    "impulse-dataset-ts": "file://../impulse-dataset-ts/",
+    "impulse-math-device-ts": "file://../impulse-math-device-ts/",
+    "impulse-ts": "file://../impulse-ts/"
   },
   "main": "./dist/impulse-ts.js",
   "devDependencies": {

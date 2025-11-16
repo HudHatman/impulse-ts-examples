@@ -1,7 +1,7 @@
 const {
   NetworkBuilder: { NetworkBuilder1D },
-  Layer: { LogisticLayer, ReluLayer },
-  Optimizer: { OptimizerGradientDescent, OptimizerMomentum },
+  Layer: { LogisticLayer, ReluLayer, TanhLayer, SoftmaxLayer },
+  Optimizer: { OptimizerGradientDescent, OptimizerMomentum, OptimizerAdagrad },
   Trainer: { Trainer },
 } = require("impulse-ts");
 const {
@@ -9,6 +9,7 @@ const {
   DatasetBuilderSource: { DatasetBuilderSourceCSV },
   DatasetModifier: { MinMaxScalingDatasetModifier, MissingDataScalingDatasetModifier, ShuffleDatasetModifier },
 } = require("impulse-dataset-ts");
+const { CalcMatrix2D } = require("impulse-math-device-ts");
 const path = require("path");
 
 const builder = new NetworkBuilder1D([4]);
@@ -30,7 +31,27 @@ DatasetBuilder.fromSource(DatasetBuilderSourceCSV.fromLocalFile(path.resolve(__d
     console.log("Loaded iris_x.csv");
     DatasetBuilder.fromSource(DatasetBuilderSourceCSV.fromLocalFile(path.resolve(__dirname, "./data/iris_y.csv"))).then(
       async (outputDataset) => {
-        console.log("forward", network.forward(inputDataset.exampleAt(0)));
+        const x = inputDataset.exampleAt(0);
+        console.log("forward", x, x.get());
+        console.log("forward", network.forward(inputDataset.data.transpose()).dims())
+        //inputDataset = new MinMaxScalingDatasetModifier().apply(inputDataset);
+        //console.log(inputDataset.exampleAt(0).get())
+        const trainer = new Trainer(network, new OptimizerGradientDescent());
+        trainer.setIterations(100);
+        trainer.setLearningRate(0.01);
+        trainer.setRegularization(0.1);
+        console.log("cost", trainer.cost(inputDataset, outputDataset));
+        console.log(inputDataset.getNumberOfExamples(), inputDataset.getExampleSize())
+        trainer.setStepCallback(() => {
+          //console.log(process.memoryUsage())
+        });
+        trainer.train(inputDataset, outputDataset);
+        //console.log(inputDataset.data.calcSync((calc) => {
+        //  calc.pow(2);
+        //  console.log(calc.sum());
+        //}).get())
+        ///console.log(inputDataset.exampleAt(0).get(), inputDataset.exampleAt(0).transpose().get());
+        /*console.log("forward", network.forward(inputDataset.exampleAt(0)));
         inputDataset = new MinMaxScalingDatasetModifier().apply(inputDataset);
         const trainer = new Trainer(network, new OptimizerGradientDescent());
         trainer.setIterations(1000);
@@ -39,7 +60,7 @@ DatasetBuilder.fromSource(DatasetBuilderSourceCSV.fromLocalFile(path.resolve(__d
         console.log("cost", trainer.cost(inputDataset, outputDataset));
         trainer.train(inputDataset, outputDataset);
         await network.save(path.resolve(__dirname, "./data/iris.json"));
-        console.log("forward", network.forward(inputDataset.exampleAt(0)), outputDataset.exampleAt(0));
+        console.log("forward", network.forward(inputDataset.exampleAt(0)), outputDataset.exampleAt(0));*/
       }
     );
   }
